@@ -78,5 +78,5 @@ for i in range(epoch):
 netG = netG.cpu().eval()
 netD = netD.cpu().eval()
 
-torch.save(netG, "passwordG_model.pth")  
-torch.save(netD, "passwordD_model.pth")       
+torch.save(netG, "pretrained/passwordG_model.pth")  
+torch.save(netD, "pretrained/passwordD_model.pth")       
