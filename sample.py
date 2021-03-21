@@ -31,21 +31,21 @@ train_set, text, train_len, vocab_len = load_dataset(
 with open(save_path, "w+") as f:
     while current_size < num_sample:
         inputs = torch.randn(batch_size, 128).float()
-        model = torch.load(model_path)
+        model = torch.load(model_path).eval()
         if use_gpu:
             inputs = inputs.cuda()
             model = model.cuda()
         
         output = model(inputs)
         sample = output.argmax(2).cpu()   
-  
+        
         for i in range(batch_size):
             gen_pass = ""
             for j in range(seq_len):   
                 gen_pass += text.vocab.itos[sample[i][j]]
-    
             gen_pass = str(gen_pass).replace("'", "") + "\n"
             f.write(gen_pass)
         current_size += batch_size            
+    
     f.close()
     

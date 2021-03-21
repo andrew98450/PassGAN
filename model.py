@@ -11,6 +11,7 @@ class ResBlock(torch.nn.Module):
             torch.nn.ReLU(),
             torch.nn.Conv1d(out_channel, out_channel, 3, padding=1, bias=False),
             torch.nn.BatchNorm1d(out_channel))
+        
     def forward(self, inputs):
         outputs = self.conv_layer(inputs)
         return (outputs * 0.3) + inputs

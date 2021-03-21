@@ -5,9 +5,9 @@ from utils import load_dataset
 
 parse = argparse.ArgumentParser()
 parse.add_argument("--dataset", default="Dataset/password.txt", type=str)
-parse.add_argument("--epoch", default=10, type=int)
+parse.add_argument("--epoch", default=20, type=int)
 parse.add_argument("--gpu", default=False, type=bool)
-parse.add_argument("--batchsize", default=1000, type=int)
+parse.add_argument("--batchsize", default=500, type=int)
 parse.add_argument("--length", default=10, type=int)
 parse.add_argument("--lr", default=0.0001, type=float)
 args = parse.parse_args()
@@ -19,7 +19,7 @@ lr = args.lr
 use_gpu = args.gpu
 epoch = args.epoch
 c = 0.01
-n_c = 10
+n_c = 5
 
 train_set, text, train_len, vocab_len = load_dataset(
     root=dataset,
@@ -51,8 +51,7 @@ for i in range(epoch):
             d_fake = netD(generate_data)  
             d_real_loss = -torch.mean(d_real)
             d_fake_loss = torch.mean(d_fake)
-            d_loss = d_fake_loss + d_real_loss
-        
+            
             d_optim.zero_grad()
             d_real_loss.backward()
             d_fake_loss.backward()
@@ -73,7 +72,7 @@ for i in range(epoch):
         g_optim.step()
         
         if iters % 10 == 0:
-            print("[+] Epoch: [%d/%d] G_Loss: %.4f D_Loss: %.4f" % (i+1, epoch, g_loss, d_loss))
+            print("[+] Epoch: [%d/%d] G_Loss: %.4f D_Real_Loss: %.4f D_Fake_Loss: %.4f" % (i+1, epoch, g_loss, d_real_loss, d_fake_loss))
 
 netG = netG.cpu().eval()
 netD = netD.cpu().eval()
