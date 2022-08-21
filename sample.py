@@ -2,19 +2,19 @@ import os
 import argparse
 import torch
 from model import NetG
-from utils import load_dataset
+from utils import load_charmap
 
 parse = argparse.ArgumentParser()
-parse.add_argument("--dataset", default="Dataset/password.txt", type=str)
+parse.add_argument("--vocabset", default="Dataset/charmap.txt", type=str)
 parse.add_argument("--savepath", default="sample/gen_password.txt", type=str)
 parse.add_argument("--modelpath", default="pretrained/passwordG_model.pth", type=str)
 parse.add_argument("--numsample", default=100000, type=int)
 parse.add_argument("--gpu", default=False, type=bool)
 parse.add_argument("--batchsize", default=1000, type=int)
-parse.add_argument("--length", default=15, type=int)
+parse.add_argument("--length", default=18, type=int)
 args = parse.parse_args()
 
-path = args.dataset
+vocabset = args.vocabset
 save_path = args.savepath
 model_path = args.modelpath
 num_sample = args.numsample
@@ -23,10 +23,7 @@ seq_len = args.length
 use_gpu = args.gpu
 current_size = 0
 
-train_set, text, train_len, vocab_len = load_dataset(
-    root=path,
-    batch_size=batch_size,
-    seq_len=seq_len)
+charmap = load_charmap(vocabset)
 
 with open(save_path, "w+") as f:
     while current_size < num_sample:
@@ -42,10 +39,11 @@ with open(save_path, "w+") as f:
         for i in range(batch_size):
             gen_pass = ""
             for j in range(seq_len):   
-                gen_pass += text.vocab.itos[sample[i][j]]
+                index = sample[i][j].item()
+                gen_pass += str(charmap[index])
             gen_pass = str(gen_pass).replace("'", "") + "\n"
             f.write(gen_pass)
-        current_size += batch_size            
-    
+        current_size += batch_size
+        print("[+] Sample Generate Progess: %d %" % int((current_size / num_sample) * 100))           
+
     f.close()
-    

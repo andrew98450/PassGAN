@@ -1,15 +1,17 @@
 import argparse
 import torch
+from torch.nn.functional import one_hot
 from model import NetG, NetD
 from utils import load_dataset
 
 parse = argparse.ArgumentParser()
-parse.add_argument("--dataset", default="Dataset/password.txt", type=str)
-parse.add_argument("--epoch", default=20, type=int)
+parse.add_argument("--dataset", default="Dataset/train.txt", type=str)
+parse.add_argument("--epoch", default=10, type=int)
 parse.add_argument("--gpu", default=False, type=bool)
-parse.add_argument("--batchsize", default=500, type=int)
-parse.add_argument("--length", default=10, type=int)
+parse.add_argument("--batchsize", default=64, type=int)
+parse.add_argument("--length", default=30, type=int)
 parse.add_argument("--lr", default=0.0001, type=float)
+parse.add_argument("--vocab_export", default=True, type=bool)
 args = parse.parse_args()
 
 dataset = args.dataset
@@ -18,13 +20,15 @@ batch_size = args.batchsize
 lr = args.lr
 use_gpu = args.gpu
 epoch = args.epoch
+vocab_export = args.vocab_export
 c = 0.01
 n_c = 5
 
 train_set, text, train_len, vocab_len = load_dataset(
     root=dataset,
     batch_size=batch_size,
-    seq_len=seq_len)
+    seq_len=seq_len,    
+    vocab_export=vocab_export)
 
 netG = NetG(seq_len, vocab_len)
 netD = NetD(seq_len, vocab_len)
@@ -43,7 +47,7 @@ for i in range(epoch):
         if use_gpu:
             real_data = real_data.cuda()
             fake_data = fake_data.cuda() 
-        real_data = torch.nn.functional.one_hot(real_data, vocab_len).float()
+        real_data = one_hot(real_data, vocab_len).float()
         
         for _ in range(n_c):
             generate_data = netG(fake_data).detach()
@@ -59,10 +63,10 @@ for i in range(epoch):
             
             for p in netD.parameters():
                 p.data = p.data.clamp(-c, c)
-            
+        
         fake_data = torch.randn(batch_size, 128).float()
-        if use_gpu:   
-            fake_data = fake_data.cuda()             
+        if use_gpu:
+            fake_data = fake_data.cuda()        
         generate_data = netG(fake_data)
         d_fake = netD(generate_data)
         g_loss = -torch.mean(d_fake)
@@ -77,5 +81,5 @@ for i in range(epoch):
 netG = netG.cpu().eval()
 netD = netD.cpu().eval()
 
-torch.save(netG, "pretrained/passwordG_model.pth")  
-torch.save(netD, "pretrained/passwordD_model.pth")       
+torch.save(netG.state_dict(), "pretrained/passwordG_model.pth")  
+torch.save(netD.state_dict(), "pretrained/passwordD_model.pth")       

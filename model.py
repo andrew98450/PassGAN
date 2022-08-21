@@ -22,10 +22,10 @@ class NetG(torch.nn.Module):
         super(NetG, self).__init__()
         self.seq_len = seq_len
         self.fc_layer = torch.nn.Sequential(
-            torch.nn.Linear(128, 512),
+            torch.nn.Linear(128, 512, bias=False),
             torch.nn.BatchNorm1d(512),
             torch.nn.ReLU(),
-            torch.nn.Linear(512, 128 * seq_len),
+            torch.nn.Linear(512, 128 * seq_len, bias=False),
             torch.nn.BatchNorm1d(128 * seq_len),
             torch.nn.ReLU())
         
@@ -40,7 +40,7 @@ class NetG(torch.nn.Module):
 
     def forward(self, inputs):
         outputs = self.fc_layer(inputs)
-        outputs = outputs.view(outputs.shape[0], 128, self.seq_len)
+        outputs = outputs.reshape(-1, 128, self.seq_len)
         outputs = self.conv_layer(outputs)
         outputs = outputs.permute(0, 2, 1)
         return outputs
@@ -61,9 +61,9 @@ class NetD(torch.nn.Module):
         
         self.fc_layer = torch.nn.Sequential(
             torch.nn.Flatten(),
-            torch.nn.Linear(128 * seq_len, 512),
+            torch.nn.Linear(128 * seq_len, 512, bias=False),
             torch.nn.ReLU(),
-            torch.nn.Linear(512, 1))        
+            torch.nn.Linear(512, 1, bias=False))        
     
     def forward(self, inputs):
         inputs = inputs.permute(0, 2, 1)
